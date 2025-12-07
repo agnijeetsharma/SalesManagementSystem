@@ -1,23 +1,19 @@
-export default function SummaryCards({ summary }) {
+import React from "react";
+function Card({ label, value, currency }) {
+  const display = currency ? new Intl.NumberFormat('en-IN', { style:'currency', currency:'INR', maximumFractionDigits:0 }).format(value || 0) : (value ?? 0);
   return (
-    <div className="summary-grid">
-      <div className="card">
-        <div className="label">Total Revenue</div>
-        <div className="big">₹ {summary.totalAmount}</div>
-        <div className="small">Across shown results</div>
-      </div>
-
-      <div className="card">
-        <div className="label">Total Orders</div>
-        <div className="big">{summary.totalOrders}</div>
-        <div className="small">Matching orders</div>
-      </div>
-
-      <div className="card">
-        <div className="label">Units Sold</div>
-        <div className="big">{summary.totalQuantity}</div>
-        <div className="small">Total units in filtered items</div>
-      </div>
+    <div className="card">
+      <div className="label">{label}</div>
+      <div className="value">{display}</div>
+    </div>
+  );
+}
+export default function SummaryCards({ summary = {} }) {
+  return (
+    <div className="summary-row">
+      <Card label="Total units sold" value={summary.totalQuantity || 0} />
+      <Card label="Total Amount" value={summary.totalAmount || 0} currency />
+      <Card label="Total Orders" value={summary.totalOrders || 0} />
     </div>
   );
 }

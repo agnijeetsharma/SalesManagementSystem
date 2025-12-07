@@ -1,85 +1,105 @@
 // src/components/Filters.jsx
 import React from "react";
+import FilterDropdown from "./FilterDropDown";
 
 /*
-Props:
-- params: current params object
-- setParams: function to update params (accepts patch or function)
-- facets: { regions:[], categories:[], payments:[], tags:[] } (optional)
+Usage:
+  <Filters params={params} updateParams={updateParams} facets={facets} />
 */
 
-function ToggleButton({ active, onClick, children }) {
-  return (
-    <button
-      className={`filter-chip ${active ? "filter-chip-active" : ""}`}
-      onClick={onClick}
-      type="button"
-    >
-      {children}
-    </button>
-  );
-}
-
-export default function Filters({ params, setParams, facets = {} }) {
-  const toggle = (key, val) => {
-    const curr = Array.isArray(params[key]) ? [...params[key]] : [];
-    const idx = curr.indexOf(val);
-    if (idx >= 0) curr.splice(idx, 1); else curr.push(val);
-    setParams(prev => ({ ...prev, [key]: curr, page: 1 }));
-  };
-
-  const clearAll = () => setParams(prev => ({ ...prev, q: "", customerRegions: [], productCategories: [], paymentMethods: [], tags: [], page: 1 }));
+export default function Filters({ params, updateParams, facets = {} }) {
+  // helpers
+  const setArray = (key, arr) => updateParams(prev => ({ ...prev, [key]: Array.isArray(arr) ? arr : [], page: 1 }));
+  const getSafe = (key) => Array.isArray(params[key]) ? params[key] : [];
 
   return (
-    <div className="filters">
-      <div className="filters-header">
-        <strong>Filters</strong>
-        <button className="link-btn" onClick={clearAll}>Clear</button>
+    <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+      <FilterDropdown
+        label="Customer Region"
+        items={facets.regions || []}
+        selected={getSafe("customerRegions")}
+        onChange={(arr) => setArray("customerRegions", arr)}
+        multi
+        placeholder="Region"
+      />
+
+      <FilterDropdown
+        label="Gender"
+        items={["Male","Female","Other"]}
+        selected={getSafe("genders") || []}
+        onChange={(arr) => setArray("genders", arr)}
+        multi
+        placeholder="Gender"
+      />
+
+      <FilterDropdown
+        label="Age Range"
+        items={[ "0-18","19-25","26-35","36-50","50+" ]}
+        selected={getSafe("ageRanges") || []}
+        onChange={(arr) => {
+          // translate age range selection into ageMin/ageMax params
+          if (!arr || arr.length === 0) {
+            updateParams(prev => ({ ...prev, ageMin: undefined, ageMax: undefined, ageRanges: [], page: 1 }));
+            return;
+          }
+          // choose first selected range only for simplicity (you can expand)
+          const r = arr[arr.length - 1];
+          let [min, max] = [undefined, undefined];
+          if (r === "0-18") { min = 0; max = 18; }
+          if (r === "19-25") { min = 19; max = 25; }
+          if (r === "26-35") { min = 26; max = 35; }
+          if (r === "36-50") { min = 36; max = 50; }
+          if (r === "50+") { min = 51; max = 200; }
+          updateParams(prev => ({ ...prev, ageRanges: arr, ageMin: min, ageMax: max, page: 1 }));
+        }}
+        multi
+        placeholder="Age"
+      />
+
+      <FilterDropdown
+        label="Product Category"
+        items={facets.categories || []}
+        selected={getSafe("productCategories")}
+        onChange={(arr) => setArray("productCategories", arr)}
+        multi
+        placeholder="Category"
+      />
+
+      <FilterDropdown
+        label="Tags"
+        items={facets.tags || []}
+        selected={getSafe("tags")}
+        onChange={(arr) => setArray("tags", arr)}
+        multi
+        placeholder="Tags"
+      />
+
+      <FilterDropdown
+        label="Payment Method"
+        items={facets.payments || []}
+        selected={getSafe("paymentMethods")}
+        onChange={(arr) => setArray("paymentMethods", arr)}
+        multi
+        placeholder="Payment"
+      />
+
+      {/* Date controls: using basic inputs so backend can receive dateFrom/dateTo */}
+      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <label style={{ fontSize: 13, color: "#6b7280" }}>From</label>
+        <input
+          type="date"
+          value={params.dateFrom || ""}
+          onChange={(e) => updateParams({ dateFrom: e.target.value || undefined, page: 1 })}
+          className="select"
+        />
+        <label style={{ fontSize: 13, color: "#6b7280" }}>To</label>
+        <input
+          type="date"
+          value={params.dateTo || ""}
+          onChange={(e) => updateParams({ dateTo: e.target.value || undefined, page: 1 })}
+          className="select"
+        />
       </div>
-
-      {facets.regions && facets.regions.length > 0 && (
-        <div className="facet">
-          <div className="facet-title">Regions</div>
-          <div className="facet-list">
-            {facets.regions.map(r => (
-              <ToggleButton key={r} active={params.customerRegions.includes(r)} onClick={() => toggle("customerRegions", r)}>{r}</ToggleButton>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {facets.categories && facets.categories.length > 0 && (
-        <div className="facet">
-          <div className="facet-title">Categories</div>
-          <div className="facet-list">
-            {facets.categories.map(c => (
-              <ToggleButton key={c} active={params.productCategories.includes(c)} onClick={() => toggle("productCategories", c)}>{c}</ToggleButton>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {facets.payments && facets.payments.length > 0 && (
-        <div className="facet">
-          <div className="facet-title">Payment</div>
-          <div className="facet-list">
-            {facets.payments.map(p => (
-              <ToggleButton key={p} active={params.paymentMethods.includes(p)} onClick={() => toggle("paymentMethods", p)}>{p}</ToggleButton>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {facets.tags && facets.tags.length > 0 && (
-        <div className="facet">
-          <div className="facet-title">Tags</div>
-          <div className="facet-list">
-            {facets.tags.map(t => (
-              <ToggleButton key={t} active={params.tags.includes(t)} onClick={() => toggle("tags", t)}>{t}</ToggleButton>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
