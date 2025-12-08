@@ -3,6 +3,9 @@
 ## 1. Overview
 A MERN-based Sales Management System that ingests CSV data and provides a unified dashboard for searching, filtering, sorting, and exploring transactional sales records. The system supports full-text search, multi-select filters, date range queries, and server-side pagination with a clean UI matching the given design.
 
+#LIVE LINK--
+Live Demo Link(https://sales-management-system-beige.vercel.app/)
+
 ## 2. Tech Stack
 **Frontend:** React (CRA), JavaScript, Plain CSS  
 **Backend:** Node.js, Express.js, MongoDB, Mongoose  
