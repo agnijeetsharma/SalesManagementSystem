@@ -1,13 +1,22 @@
-// src/api/sales.js
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:5000/api/v1";
+const API_BASE =
+  process.env.REACT_APP_API_BASE || "http://localhost:5000/api/v1";
 
 function toQs(obj = {}) {
   const params = new URLSearchParams();
   Object.entries(obj).forEach(([k, v]) => {
     if (v === undefined || v === null) return;
+
     if (Array.isArray(v)) {
       if (v.length === 0) return;
-      params.set(k, v.join(","));
+
+      if (k === "tags") {
+        v.forEach((val) => {
+          const s = String(val).trim();
+          if (s) params.append("tags", s);
+        });
+      } else {
+        params.set(k, v.join(","));
+      }
     } else {
       const s = String(v).trim();
       if (s === "") return;
